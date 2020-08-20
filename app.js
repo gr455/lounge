@@ -1,19 +1,29 @@
 /* Main app settings file for lounge */
 
 const express = require('express');
-const parser = require('body-parser');
 const mongoose = require('mongoose');
+
+// middleware
+
+const parser = require('./api/v1/middleware/parser')
 
 const app = express();
 const router = express.Router();
 
 //connection to mongodb
+
+mongoose.set('useCreateIndex', true);
 mongoose.connect(
 	process.env.MONGODB_LOUNGE,
 
 	{ 
 		useNewUrlParser: true, useUnifiedTopology: true }
 	);
+
+
+// middleware config
+
+app.use(parser.bodyParser.urlencoded({ extended: false }));
 
 const ERR = {
 	not_found: {
@@ -29,6 +39,10 @@ const ERR = {
 	ise: {
 		message: "Something went wrong",
 		status: 500
+	},
+	auth_fail: {
+		message: "Incorrect username or password",
+		status: 401
 	},
 
 }

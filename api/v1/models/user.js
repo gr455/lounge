@@ -4,42 +4,42 @@ const mongoose = require('mongoose');
 const md5 = require('md5');
 const crypto = require('crypto');
 
-const UserSchema = mongoose.Schema({
+var UserSchema = mongoose.Schema({
 	_id: mongoose.Schema.Types.ObjectId,
-	login: { type: String, unique: true, required: true},
-	pass_hash: String,
+	login: { type: String, unique: true, required: true },
+	pass_hash: { type: String, required: true },
 	pass_salt: String,
-	email: { type: String, unique: true, required: true},
+	email: { type: String, unique: true, required: true },
 	image: String,
 	bio: String
-}, {timestamps: true})
+}, { timestamps: true });
 
-const User = mongoose.model('User', UserSchema);
+var User = mongoose.model('User', UserSchema);
 
-function authenticate(login, password){
-
-	const user = User.find({login: login})
-	.exec()
-	.then(result => {
-		if(user) return user.pass_hash === md5(password + salt);
+UserSchema.statics.authenticate = async (login, password) => {
+	try{
+		const user = await User.findOne({login: login}).exec();
+		console.log(user);
+		if(user) return user.pass_hash === md5(password + user.pass_salt);
 		else return false;
-	})
-	.catch(error => {
+	} catch(error){
 		return false;
-	});
+	}
 }
 
-async function create(login, password, email, image, bio){
-	const salt = crypto.randomBytes(16);
+
+UserSchema.statics.create = async (login, password, email, image, bio) => {
+	const salt = crypto.randomBytes(16).toString('hex');
 	var user = new User({
 		_id: new mongoose.Types.ObjectId(),
 		login: login,
 		pass_hash: md5(password + salt),
-		salt: salt,
+		pass_salt: salt,
 		email: email,
 		image: image,
 		bio: bio
 	});
+
 
 	return new Promise((resolve, reject) => {
 		user.save()
@@ -52,10 +52,17 @@ async function create(login, password, email, image, bio){
 	})
 }
 
-async function destroy(id){
-	const user = await User.findById(id).exec();
+
+UserSchema.methods.destroy = async () => {
+	const user = await User.findById(this.id).exec();
 	await user.delete();
 }
 
+// 'user' deletes 'this'
+UserSchema.methods.canDelete = async(user) => {
+	return this.id === user.id;
+}
+
+User = mongoose.model('User', UserSchema);
 
 module.exports = User;
