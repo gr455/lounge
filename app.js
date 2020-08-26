@@ -24,8 +24,9 @@ mongoose.connect(
 // middleware config
 
 app.use(parser.bodyParser.urlencoded({ extended: false }));
+app.use(parser.bodyParser.json());
 
-const ERR = {
+exports.ERR = {
 	not_found: {
 		message: "Not found",
 		status: 404
@@ -70,16 +71,9 @@ app.get('/api', (req, res) => {
 });
 
 app.use((req, res, next) => {
-	res.status(ERR['not_found'].status);
-	const error = new Error(ERR['not_found'].message)
-	res.json({
-		error: {
-			message: error.message,
-			details: ""
-		}
-	});
-
+	res.status(404).json({error: {message: "Not found",
+		status: 404} })
 });
 
 module.exports = app;
-
+// module.exports.ERR = ERR;
