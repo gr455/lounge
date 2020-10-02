@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const md5 = require('md5');
 const crypto = require('crypto');
 
-var UserSchema = new mongoose.Schema({
+const UserSchema = new mongoose.Schema({
 	_id: mongoose.Schema.Types.ObjectId,
 	login: { type: String, unique: true, required: true },
 	pass_hash: { type: String, required: true },
@@ -73,5 +73,5 @@ UserSchema.methods.canDelete = async(user) => {
 	return this.id === user.id;
 }
 
-var User = mongoose.model('User', UserSchema);
+const User = mongoose.model('User', UserSchema);
 module.exports = User;
